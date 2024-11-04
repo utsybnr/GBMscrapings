@@ -1,5 +1,5 @@
 # 概要
-ガンダムブレイカーモバイル攻略まとめwiki[https://wiki.dengekionline.com/gbm/]からデータをスクレイピングするために作成したものです。Power Automate Desktop（以下、PAD）で構築しています。
+ガンダムブレイカーモバイル攻略まとめwiki[https://wiki.dengekionline.com/gbm/] からデータをスクレイピングするために作成したものです。Power Automate Desktop（以下、PAD）で構築しています。
 全件取得と増分取得の2パターンが可能です。  
 全件取得...wiki内のデータをすべて取得します。   
 増分取得...直近の更新で追加されたデータのみ取得します。  
