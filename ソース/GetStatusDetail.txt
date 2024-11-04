@@ -1,0 +1,267 @@
+LOOP FOREACH CurrentParts IN PartsTable
+    Text.Replace Text: CurrentParts[0] TextToFind: $'''\\ ''' IsRegEx: True IgnoreCase: False ReplaceWith: $'''_''' ActivateEscapeSequences: False Result=> ReplacedPartsNamewithAttribute
+    # ズサとヒルドルブとモビルハロの頭に一体型がつかない。
+    SWITCH ReplacedPartsNamewithAttribute
+            # Wiki側の誤情報修正
+        CASE = $'''ビーム・シールド［ベルガ・ギロス］'''
+            NEXT LOOP
+        CASE = $'''【改造】GNシールド［エクシア］'''
+            SET ReplacedPartsNamewithAttribute TO $'''【改造】GNシールド［エクシア］_'''
+        CASE = $'''大型アックス［グレイズアイン］'''
+            IF CurrentAddURL[0] = $'''アックス''' THEN
+                NEXT LOOP
+            END
+        CASE = $'''ファルクスG7_ビームアックス'''
+            IF CurrentAddURL[0] = $'''アックス''' THEN
+                NEXT LOOP
+            END
+        CASE = $'''GNビームピストルⅡ［アックスモード］'''
+            IF CurrentAddURL[0] = $'''アックス''' THEN
+                NEXT LOOP
+            END
+        CASE = $'''【改造】ソードメイス'''
+            SET ReplacedPartsNamewithAttribute TO $'''【改造】ソードメイス_'''
+        CASE = $'''GNランス［ライフルモード］'''
+            IF CurrentAddURL[0] = $'''ランス''' THEN
+                NEXT LOOP
+            END
+        CASE = $'''【改造】スタングルライフル'''
+            SET ReplacedPartsNamewithAttribute TO $'''【改造】スタングルライフル_'''
+        CASE = $'''【改造】高エネルギービームライフル［ストライクフリーダム］'''
+            IF CurrentAddURL[0] = $'''ロングライフル''' THEN
+                NEXT LOOP
+            END
+        CASE = $'''【改造】ダイダルバズーカ'''
+            SET ReplacedPartsNamewithAttribute TO $'''【改造】ダイダルバズーカ_'''
+        CASE = $'''【改造】ガンダム試作1号機［ゼフィランサス］'''
+            IF CurrentAddURL[0] = $'''バズーカ''' THEN
+                NEXT LOOP
+            END
+        CASE = $'''クロスボーン・ガンダムX2（T）'''
+            IF CurrentAddURL[0] = $'''Back''' THEN
+                IF IsAlter = $'''True''' THEN
+                    NEXT LOOP
+                END
+            END
+        CASE = $'''【改造】ビーム・シールド［F91（ハリソン・マディン専用）］（T）'''
+            NEXT LOOP
+        CASE = $'''ダリルバルデ（P）'''
+            IF CurrentAddURL[0] = $'''Body''' THEN
+                IF IsAlter = $'''True''' THEN
+                    SET ReplacedPartsNamewithAttribute TO $'''【改造】ダリルバルデ（P）'''
+                END
+            END
+    END
+    WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%%CurrentAddURL[0]%（%CurrentAddURL[1]%）一覧/%ReplacedPartsNamewithAttribute%（%CurrentAddURL[1]%）'''
+    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > p:eq(0)''', $'''Own Text''', $''''''] } ExtractedData=> NotSkillorNotTraits
+    IF $'''※Lv99、Lv99＋証は★7のパラメータとなります。''' = NotSkillorNotTraits[0][0] THEN
+        SET IsRarity7 TO $'''True'''
+        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: 7 Column: 6 Row: StatusExcelRowNumber
+    ELSE
+        SET IsRarity7 TO $'''False'''
+        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: 6 Column: 6 Row: StatusExcelRowNumber
+    END
+    IF Contains($'''[\'※ピックアップガシャ時に排出レアリティが上昇する場合があります。\', \'※Lv99、Lv99＋証は★7のパラメータとなります。\']''', NotSkillorNotTraits[0][0], False) THEN
+        WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > p:eq(1)''', $'''Own Text''', $''''''] } ExtractedData=> NotSkillorNotTraits
+    END
+    # 基本情報取得
+    SWITCH CurrentAddURL[2]
+        CASE = 0
+            # 本体
+            WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(0) > table > tbody > tr:eq(1) > td''', $'''Own Text''', $''''''] } ExtractedData=> MSName
+            WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(0) > table > tbody > tr:eq(1) > td''', $'''Own Text''', $''''''] } ExtractedData=> PartsAttribute
+        CASE = 1
+            # 武器盾
+            IF CurrentAddURL[0] <> $'''モジュール''' THEN
+                WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(0) > table > tbody > tr:eq(2) > td''', $'''Own Text''', $''''''] } ExtractedData=> MSName
+            ELSE IF ReplacedPartsNamewithAttribute = $'''トンファー［ブレイジング］''' THEN
+                WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(0) > table > tbody > tr:eq(2) > td''', $'''Own Text''', $''''''] } ExtractedData=> MSName
+            ELSE
+                WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(0) > table > tbody > tr:eq(1) > td''', $'''Own Text''', $''''''] } ExtractedData=> MSName
+            END
+            WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(0) > table > tbody > tr:eq(1) > td''', $'''Own Text''', $''''''] } ExtractedData=> PartsAttribute
+        CASE = 2
+            # AI
+            WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(0) > table > tbody > tr:eq(1) > td''', $'''Own Text''', $''''''] } ExtractedData=> PartsAttribute
+            WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(0) > table > tbody > tr''' ExtractionParameters: {[$'''td''', $'''Own Text''', $''''''] } ExtractedData=> AIInfo
+    END
+    # ステータス、特性などの取得
+    SWITCH IsAlter
+        CASE = $'''True'''
+            SET IsBig TO $'''True'''
+            BLOCK IsBig
+ON BLOCK ERROR
+
+END
+                WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(1) > div > table''' ExtractionParameters: {[$'''レベル''', $'''耐久力''', $'''攻撃力''', $'''防御力''', $'''耐性''', $'''耐性 #1''', $'''耐性 #2''', $'''耐性 #3'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> StatusTable
+                SET IsBig TO $'''False'''
+            END
+            IF IsBig = $'''True''' THEN
+                WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(2) > div > table''' ExtractionParameters: {[$'''レベル''', $'''耐久力''', $'''攻撃力''', $'''防御力''', $'''耐性''', $'''耐性 #1''', $'''耐性 #2''', $'''耐性 #3'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> StatusTable
+                WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(4) > table''' ExtractionParameters: {[$'''レベル''', $'''効果値'''], [$'''''', $''''''] } ExtractedData=> Traits1Table
+                IF NotSkillorNotTraits[0][0] = $'''※現在、パーツ特性はありません。''' THEN
+                    WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(3) > table > tbody > tr''' ExtractionParameters: {[$'''td''', $'''Own Text''', $''''''] } ExtractedData=> Traits1Detail
+                    WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(5) > table > tbody > tr''' ExtractionParameters: {[$'''th''', $'''Own Text''', $''''''] } ExtractedData=> WordTagList
+                ELSE
+                    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(3) > table > tbody > tr > td''', $'''Own Text''', $''''''] } ExtractedData=> Traits1Detail
+                    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(5) > table > tbody > tr > td''', $'''Own Text''', $''''''] } ExtractedData=> Traits2Detail
+                    WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(6) > table''' ExtractionParameters: {[$'''レベル''', $'''効果値'''], [$'''''', $''''''] } ExtractedData=> Traits2Table
+                    WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(7) > table > tbody > tr''' ExtractionParameters: {[$'''th''', $'''Own Text''', $''''''] } ExtractedData=> WordTagList
+                END
+            ELSE
+                WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(3) > table''' ExtractionParameters: {[$'''レベル''', $'''効果値'''], [$'''''', $''''''] } ExtractedData=> Traits1Table
+                IF NotSkillorNotTraits[0][0] = $'''※現在、パーツ特性はありません。''' THEN
+                    WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(2) > table > tbody > tr''' ExtractionParameters: {[$'''td''', $'''Own Text''', $''''''] } ExtractedData=> Traits1Detail
+                    WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(4) > table > tbody > tr''' ExtractionParameters: {[$'''th''', $'''Own Text''', $''''''] } ExtractedData=> WordTagList
+                ELSE
+                    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(2) > table > tbody > tr > td''', $'''Own Text''', $''''''] } ExtractedData=> Traits1Detail
+                    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(4) > table > tbody > tr > td''', $'''Own Text''', $''''''] } ExtractedData=> Traits2Detail
+                    WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(5) > table''' ExtractionParameters: {[$'''レベル''', $'''効果値'''], [$'''''', $''''''] } ExtractedData=> Traits2Table
+                    WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(6) > table > tbody > tr''' ExtractionParameters: {[$'''th''', $'''Own Text''', $''''''] } ExtractedData=> WordTagList
+                END
+            END
+        DEFAULT
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(2) > div > table''' ExtractionParameters: {[$'''レベル''', $'''耐久力''', $'''攻撃力''', $'''防御力''', $'''耐性''', $'''耐性 #1''', $'''耐性 #2''', $'''耐性 #3'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> StatusTable
+            IF NotSkillorNotTraits[0][0] = $'''※現在、パーツ特性はありません。''' THEN
+                WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(3) > table > tbody > tr''' ExtractionParameters: {[$'''td''', $'''Own Text''', $''''''] } ExtractedData=> Traits1Detail
+            ELSE
+                IF ReplacedPartsNamewithAttribute = $'''菊一文字／虎徹（P）''' THEN
+                    SET Traits1Detail TO { ^['自機が《高機動》の時格闘攻撃の威力17％上昇', '17'] }
+                ELSE
+                    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(3) > table > tbody > tr > td''', $'''Own Text''', $''''''] } ExtractedData=> Traits1Detail
+                END
+            END
+            IF ReplacedPartsNamewithAttribute = $'''菊一文字／虎徹（P）''' THEN
+                SET Traits1Table TO { ^['0', '17'], ['1', '18'], ['2', '19'], ['3', '20'], ['4', '21'], ['5', '22'], ['6', '23'], ['7', '24'], ['8', '25'], ['9', '30'] }
+                WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(3) > table > tbody > tr''' ExtractionParameters: {[$'''th''', $'''Own Text''', $''''''] } ExtractedData=> WordTagList
+            ELSE
+                WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(4) > table''' ExtractionParameters: {[$'''レベル''', $'''回復量（％）''', $'''クールタイム'''], [$'''''', $'''''', $''''''] } ExtractedData=> Traits1Table
+                WebAutomation.ExtractData.ExtractList BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div:eq(1) > div:eq(5) > table > tbody > tr''' ExtractionParameters: {[$'''th''', $'''Own Text''', $''''''] } ExtractedData=> WordTagList
+            END
+    END
+    # 一体型パーツ判定
+    IF CurrentAddURL[2] <> 2 THEN
+        Text.Replace Text: MSName[0][0] TextToFind: $'''\\ ''' IsRegEx: True IgnoreCase: False ReplaceWith: $'''_''' ActivateEscapeSequences: False Result=> ReplacedMSNamewithAttribute
+        WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%機体一覧/%ReplacedMSNamewithAttribute%'''
+        BLOCK NoParentMS
+ON BLOCK ERROR
+    GOTO NoParentMS
+END
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(3) > table''' ExtractionParameters: {[$'''部位''', $'''パーツ名''', $'''EXskill''', $'''パーツ特性''', $'''備考'''], [$'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> MSPartsList
+        END
+        LOOP FOREACH CurrentCategory IN MSPartsList
+            IF CurrentCategory[1] = $'''%CurrentParts[0]%（%CurrentAddURL[1]%）''' THEN
+            ELSE IF CurrentCategory[1] = CurrentParts[0] THEN
+            ELSE
+                # 該当パーツ行になるまでskip
+                NEXT LOOP
+            END
+            Text.ParseText.ParseForFirstOccurrence Text: CurrentCategory[4] TextToFind: $'''＋''' StartingPosition: 0 IgnoreCase: False OccurrencePosition=> PlusPosition
+            IF PlusPosition <> (-1) THEN
+                Text.GetSubtext.GetSubtextFrom Text: CurrentCategory[4] CharacterPosition: PlusPosition + 1 Subtext=> CombinedCategory
+            END
+            EXIT LOOP
+        END
+    END
+    LABEL NoParentMS
+    # Excelへの書き込み
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: StatusExcelId Column: 1 Row: StatusExcelRowNumber
+    SET SubstituteList TO {['（P）', ''], ['（T）', ''], ['（S）', ''], ['(P)', ''], ['(T)', ''], ['(S)', ''] }
+    SET ReplacedPartsName TO CurrentParts[0]
+    IF ReplacedPartsName = $'''ダリルバルデ（P）''' THEN
+        IF CurrentAddURL[0] = $'''Body''' THEN
+            IF IsAlter = $'''True''' THEN
+                SET ReplacedPartsName TO $'''【改造】ダリルバルデ（P）'''
+            END
+        END
+    END
+    LOOP FOREACH SubstituteItem IN SubstituteList
+        Text.Replace Text: ReplacedPartsName TextToFind: SubstituteItem[0] IsRegEx: False IgnoreCase: False ReplaceWith: SubstituteItem[1] ActivateEscapeSequences: False Result=> ReplacedPartsName
+    END
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: ReplacedPartsName Column: 2 Row: StatusExcelRowNumber
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentAddURL[0] Column: 3 Row: StatusExcelRowNumber
+    IF CurrentAddURL[2] <> 2 THEN
+        SET ReplacedMSName TO MSName[0][0]
+        LOOP FOREACH SubstituteItem IN SubstituteList
+            Text.Replace Text: ReplacedMSName TextToFind: SubstituteItem[0] IsRegEx: False IgnoreCase: False ReplaceWith: SubstituteItem[1] ActivateEscapeSequences: False Result=> ReplacedMSName
+        END
+        LOOP FOREACH CurrentMSID IN MSIDList
+            IF $'''%CurrentMSID[1]%%CurrentMSID[2]%''' = $'''%ReplacedMSName%%PartsAttribute[0][0]%''' THEN
+                Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentMSID[0] Column: 4 Row: StatusExcelRowNumber
+                EXIT LOOP
+            END
+        END
+    END
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: PartsAttribute[0][0] Column: 5 Row: StatusExcelRowNumber
+    IF PlusPosition <> (-1) THEN
+        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CombinedCategory Column: 7 Row: StatusExcelRowNumber
+    END
+    IF CurrentAddURL[2] = 2 THEN
+        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: AIInfo[3] Column: 8 Row: StatusExcelRowNumber
+        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: AIInfo[4] Column: 9 Row: StatusExcelRowNumber
+        Variables.ClearList List: AIType ClearedList=> AIType
+        Variables.ClearList List: JobLicense ClearedList=> JobLicense
+    END
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: StatusTable[7] Column: 25 Row: StatusExcelRowNumber
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: StatusTable[6] Column: 18 Row: StatusExcelRowNumber
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: StatusTable[5] Column: 11 Row: StatusExcelRowNumber
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: WordTagList[1] Column: 11 Row: StatusExcelRowNumber
+    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: WordTagList[0] Column: 10 Row: StatusExcelRowNumber
+    SWITCH NotSkillorNotTraits[0][0]
+        CASE = $'''※現在、EXskillありません。'''
+            Text.Replace Text: Traits1Detail[0] TextToFind: $'''\\r\\n''' IsRegEx: True IgnoreCase: False ReplaceWith: $'''%''%''' ActivateEscapeSequences: False Result=> Traits1Text
+            Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: Traits1Text Column: 33 Row: StatusExcelRowNumber
+            SET CurrentLevel TO 1
+            LOOP FOREACH CurrentTraitEffect IN Traits1Table
+                Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[1] Column: 33 + CurrentLevel Row: StatusExcelRowNumber
+                Variables.IncreaseVariable Value: CurrentLevel IncrementValue: 1 IncreasedValue=> CurrentLevel
+            END
+            IF IsAlter = $'''True''' THEN
+                Text.Replace Text: Traits2Detail[0] TextToFind: $'''\\r\\n''' IsRegEx: True IgnoreCase: False ReplaceWith: $'''%''%''' ActivateEscapeSequences: False Result=> Traits2Text
+                Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: Traits2Text Column: 44 Row: StatusExcelRowNumber
+                SET CurrentLevel TO 1
+                LOOP FOREACH CurrentTraitEffect IN Traits2Table
+                    Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[1] Column: 44 + CurrentLevel Row: StatusExcelRowNumber
+                    Variables.IncreaseVariable Value: CurrentLevel IncrementValue: 1 IncreasedValue=> CurrentLevel
+                END
+            END
+        CASE = $'''※現在、パーツ特性はありません。'''
+            Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: Traits1Detail[0] Column: 55 Row: StatusExcelRowNumber
+            Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: Traits1Detail[1] Column: 56 Row: StatusExcelRowNumber
+            Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: Traits1Detail[2] Column: 57 Row: StatusExcelRowNumber
+            SET CurrentLevel TO 1
+            LOOP FOREACH CurrentTraitEffect IN Traits1Table
+                /# 3貫通、
+4威力、
+5弾数、
+6効果値、
+7効果時間、
+8クールタイム#/
+                /# 弾数　5列(「効果時間」を空ける)
+通常　4列(弾数と同じでOK)
+強化覚醒　3列(頭3つ開ける、「効果」と「効果時間」を逆に)
+回復　2列(頭3つ開ける+「効果時間」を空ける)#/
+                # "／"が入る場合、「効果値」が日付になる→事前にExcelの書式を文字列にしておけばOK?
+                SWITCH CurrentTraitEffect.ColumnsCount - 1
+                    CASE >= 4
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[1] Column: 52 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[2] Column: 53 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                        IF CurrentTraitEffect[3] <> $'''―''' THEN
+                            Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[3] Column: 54 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                        END
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[4] Column: 55 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[5] Column: 57 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                    CASE = 3
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[2] Column: 55 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[1] Column: 56 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[3] Column: 57 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                    CASE = 2
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[1] Column: 55 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                        Excel.WriteToExcel.WriteCell Instance: StatusExcel Value: CurrentTraitEffect[2] Column: 57 + CurrentLevel * 6 Row: StatusExcelRowNumber
+                END
+                Variables.IncreaseVariable Value: CurrentLevel IncrementValue: 1 IncreasedValue=> CurrentLevel
+            END
+    END
+    Variables.IncreaseVariable Value: StatusExcelRowNumber IncrementValue: 1 IncreasedValue=> StatusExcelRowNumber
+    Variables.IncreaseVariable Value: StatusExcelId IncrementValue: 1 IncreasedValue=> StatusExcelId
+END

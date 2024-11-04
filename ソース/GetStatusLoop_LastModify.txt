@@ -1,0 +1,55 @@
+LOOP FOREACH CurrentAddURL IN AddURLList
+    IF CurrentAddURL[3] <> 1 THEN
+        NEXT LOOP
+    END
+    SET IsAlter TO $'''False'''
+    WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%%CurrentAddURL[0]%（%CurrentAddURL[1]%）一覧'''
+    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(1) > div > time''', $'''Own Text''', $''''''] } ExtractedData=> LastModify
+    IF NotContains(Target, LastModify[0][0], False) THEN
+        # LastModifyが特定の値でなければskip
+        GOTO altertable1
+    END
+    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div:eq(0)''', $'''Own Text''', $''''''] } ExtractedData=> IndexText
+    Text.GetSubtext.GetSubtext Text: IndexText[0][0] CharacterPosition: 0 NumberOfChars: 2 Subtext=> HasIndex
+    BLOCK NoLastModify1
+ON BLOCK ERROR
+    GOTO altertable1
+END
+        IF HasIndex = $'''目次''' THEN
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div:eq(1) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性''', $'''耐久力''', $'''格闘攻撃力''', $'''射撃攻撃力''', $'''格闘防御力''', $'''射撃防御力''', $'''ビーム耐性''', $'''物理耐性'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> PartsTable
+        ELSE IF CurrentAddURL[0] = $'''アックス''' THEN
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div > div > div:eq(0) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性''', $'''耐久力''', $'''格闘攻撃力''', $'''射撃攻撃力''', $'''格闘防御力''', $'''射撃防御力''', $'''ビーム耐性''', $'''物理耐性'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> PartsTable
+        ELSE
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div:eq(0) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性''', $'''耐久力''', $'''格闘攻撃力''', $'''射撃攻撃力''', $'''格闘防御力''', $'''射撃防御力''', $'''ビーム耐性''', $'''物理耐性'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> PartsTable
+        END
+    END
+    CALL GetStatusDetail
+    LABEL altertable1
+    IF CurrentAddURL[0] = $'''モジュール''' THEN
+        GOTO tablesend
+    END
+    SET IsAlter TO $'''True'''
+    WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%改造%CurrentAddURL[0]%（%CurrentAddURL[1]%）一覧'''
+    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(1) > div > time''', $'''Own Text''', $''''''] } ExtractedData=> LastModify
+    IF NotContains(Target, LastModify[0][0], False) THEN
+        # LastModifyが特定の値でなければskip
+        GOTO tablesend
+    END
+    WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div:eq(0)''', $'''Own Text''', $''''''] } ExtractedData=> IndexText
+    Text.GetSubtext.GetSubtext Text: IndexText[0][0] CharacterPosition: 0 NumberOfChars: 2 Subtext=> HasIndex
+    BLOCK NoLastModify2
+ON BLOCK ERROR
+    GOTO tablesend
+END
+        IF HasIndex = $'''目次''' THEN
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div:eq(1) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性''', $'''耐久力''', $'''格闘攻撃力''', $'''射撃攻撃力''', $'''格闘防御力''', $'''射撃防御力''', $'''ビーム耐性''', $'''物理耐性'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> PartsTable
+        ELSE IF CurrentAddURL[0] = $'''アックス''' THEN
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div > div > div:eq(0) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性''', $'''耐久力''', $'''格闘攻撃力''', $'''射撃攻撃力''', $'''格闘防御力''', $'''射撃防御力''', $'''ビーム耐性''', $'''物理耐性'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> PartsTable
+        ELSE
+            WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div > div:eq(0) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性''', $'''耐久力''', $'''格闘攻撃力''', $'''射撃攻撃力''', $'''格闘防御力''', $'''射撃防御力''', $'''ビーム耐性''', $'''物理耐性'''], [$'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $'''''', $''''''] } ExtractedData=> PartsTable
+        END
+    END
+    CALL GetStatusDetail
+    LABEL tablesend
+    Excel.SaveExcel.Save Instance: StatusExcel
+END

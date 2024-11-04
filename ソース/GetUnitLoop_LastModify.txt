@@ -1,0 +1,18 @@
+WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%機体一覧'''
+WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(1) > div > time''', $'''Own Text''', $''''''] } ExtractedData=> LastModify
+IF NotContains(Target, LastModify[0][0], False) THEN
+    # LastModifyが特定の値でなければskip
+    GOTO altertable1
+END
+WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(1) > div:eq(0) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性'''], [$'''''', $'''''', $''''''] } ExtractedData=> MSList
+CALL GetUnitDetail
+LABEL altertable1
+WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%改造機体一覧'''
+WebAutomation.ExtractData.ExtractSingleValue BrowserInstance: Browser ExtractionParameters: {[$'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(1) > div > time''', $'''Own Text''', $''''''] } ExtractedData=> LastModify
+IF NotContains(Target, LastModify[0][0], False) THEN
+    # LastModifyが特定の値でなければskip
+    GOTO tablesend
+END
+WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(1) > div:eq(0) > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性'''], [$'''''', $'''''', $''''''] } ExtractedData=> MSList
+CALL GetUnitDetail
+LABEL tablesend

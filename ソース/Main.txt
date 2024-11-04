@@ -1,0 +1,37 @@
+SET ParentURL TO $'''https://wiki.dengekionline.com/gbm/'''
+SET WorkspaceFolder TO $'''hogehoge'''
+SET Target TO ['最終更新:14時間前', '最終更新:15時間前', '最終更新:16時間前']
+WebAutomation.LaunchChrome.LaunchChrome Url: ParentURL WindowState: WebAutomation.BrowserWindowState.Normal ClearCache: False ClearCookies: False Timeout: 60 BrowserInstance=> Browser
+Excel.LaunchExcel.LaunchAndOpen Path: $'''%WorkspaceFolder%\\出力先\\機体一覧.xlsx''' Visible: True ReadOnly: False LoadAddInsAndMacros: False Instance=> MSExcel
+Excel.GetFirstFreeColumnRow Instance: MSExcel FirstFreeColumn=> FirstFreeColumnOnMSExcel FirstFreeRow=> FirstFreeRowOnMSExcel
+Excel.ReadFromExcel.ReadCell Instance: MSExcel StartColumn: 1 StartRow: FirstFreeRowOnMSExcel - 1 ReadAsText: False CellValue=> LastMSId
+SET MSExcelRowNumber TO FirstFreeRowOnMSExcel
+SET MSExcelId TO LastMSId + 1
+# GetUnitLoopを選択
+CALL GetUnitLoop_LastModify
+Excel.ReadFromExcel.ReadCells Instance: MSExcel StartColumn: 1 StartRow: FirstFreeRowOnMSExcel EndColumn: 3 EndRow: MSExcelRowNumber ReadAsText: False FirstLineIsHeader: False RangeValue=> MSIDList
+Excel.LaunchExcel.LaunchAndOpen Path: $'''%WorkspaceFolder%\\マスタ\\URL関連.xlsx''' Visible: True ReadOnly: False LoadAddInsAndMacros: False Instance=> URLExcel
+Excel.ReadFromExcel.ReadAllCells Instance: URLExcel ReadAsText: False FirstLineIsHeader: True RangeValue=> AddURLList
+Excel.CloseExcel.Close Instance: URLExcel
+Excel.LaunchExcel.LaunchAndOpen Path: $'''C:\\Users\\heero\\Desktop\\出力先\\ステータス一覧.xlsx''' Visible: True ReadOnly: False LoadAddInsAndMacros: False Instance=> StatusExcel
+Excel.GetFirstFreeColumnRow Instance: StatusExcel FirstFreeColumn=> FirstFreeColumnOnStatusExcel FirstFreeRow=> FirstFreeRowOnStatusExcel
+Excel.ReadFromExcel.ReadCell Instance: StatusExcel StartColumn: 1 StartRow: FirstFreeRowOnStatusExcel - 1 ReadAsText: False CellValue=> LastStatusId
+SET StatusExcelRowNumber TO FirstFreeRowOnStatusExcel
+SET StatusExcelId TO LastStatusId + 1
+# GetStatusLoopを選択
+CALL GetStatusLoop_LastModify
+# 更新内容を別Excelにペースト
+Excel.LaunchExcel.Launch Visible: True LoadAddInsAndMacros: False Instance=> MSExcel_LastModify
+Excel.CopyCellsFromExcel.CopyCells Instance: MSExcel StartColumn: 1 StartRow: 1 EndColumn: FirstFreeColumnOnMSExcel - 1 EndRow: 1
+WAIT 1
+Excel.PasteCellsToExcel.PasteAt Instance: MSExcel_LastModify Column: 1 Row: 1
+Excel.CopyCellsFromExcel.CopyCells Instance: MSExcel StartColumn: 1 StartRow: FirstFreeRowOnMSExcel EndColumn: FirstFreeColumnOnMSExcel - 1 EndRow: MSExcelRowNumber - 1
+WAIT 1
+Excel.PasteCellsToExcel.PasteAt Instance: MSExcel_LastModify Column: 1 Row: 2
+Excel.LaunchExcel.Launch Visible: True LoadAddInsAndMacros: False Instance=> StatusExcel_LastModify
+Excel.CopyCellsFromExcel.CopyCells Instance: StatusExcel StartColumn: 1 StartRow: 1 EndColumn: FirstFreeColumnOnStatusExcel - 1 EndRow: 1
+WAIT 1
+Excel.PasteCellsToExcel.PasteAt Instance: StatusExcel_LastModify Column: 1 Row: 1
+Excel.CopyCellsFromExcel.CopyCells Instance: StatusExcel StartColumn: 1 StartRow: FirstFreeRowOnStatusExcel EndColumn: FirstFreeColumnOnStatusExcel - 1 EndRow: StatusExcelRowNumber - 1
+WAIT 1
+Excel.PasteCellsToExcel.PasteAt Instance: StatusExcel_LastModify Column: 1 Row: 2

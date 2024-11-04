@@ -1,0 +1,16 @@
+SET MSExcelId TO 1
+WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%機体一覧'''
+WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(1) > div:eq(1) > div > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性'''], [$'''''', $'''''', $''''''] } ExtractedData=> MSList
+CALL GetUnitDetail
+WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%機体一覧'''
+WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(1) > div:eq(2) > div > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性'''], [$'''''', $'''''', $''''''] } ExtractedData=> MSList
+CALL GetUnitDetail
+WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%機体一覧'''
+WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(1) > div:eq(3) > div > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性'''], [$'''''', $'''''', $''''''] } ExtractedData=> MSList
+CALL GetUnitDetail
+WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%改造機体一覧'''
+WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(1) > div:eq(1) > div > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性'''], [$'''''', $'''''', $''''''] } ExtractedData=> MSList
+CALL GetUnitDetail
+WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: $'''%ParentURL%改造機体一覧'''
+WebAutomation.ExtractData.ExtractHtmlTable BrowserInstance: Browser Control: $'''html > body > div:eq(0) > div > div > div:eq(2) > div > div:eq(1) > div:eq(0) > div > div > article > section > div > div:eq(2) > div > div > div:eq(1) > div:eq(2) > div > table''' ExtractionParameters: {[$'''名称''', $'''レア度''', $'''属性'''], [$'''''', $'''''', $''''''] } ExtractedData=> MSList
+CALL GetUnitDetail
